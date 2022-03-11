@@ -1,0 +1,15 @@
+cpuset-py3==1.0.2
+fastapi==0.80.0
+gunicorn==20.1.0
+Jinja2==3.0.3
+loguru==0.6.0
+numpy==1.21.5
+pandas==1.4.1
+protobuf==3.19.4
+psutil==5.9.0
+pydantic==1.9.0
+python-multipart==0.0.5
+recordclass==0.17.2
+scikit_learn==1.1.2
+tritonclient==2.19.0
+uvicorn==0.17.5

@@ -1,0 +1,2 @@
+class ACPerfAnalyzerException(Exception):
+    pass

@@ -1,0 +1,11 @@
+.vscode
+venv
+__pycache__
+inference_output/
+admission_controller/tests/acc_tests/*.json
+admission_controller/tests/triton_model_repo/
+**.pdf
+**.png
+.DS_Store
+**.svg
+**.obj

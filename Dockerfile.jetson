@@ -1,0 +1,153 @@
+FROM nvcr.io/nvidia/l4t-ml:r32.7.1-py3 as tflite_backend_build
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Cmake Version options
+ARG CMAKE_VERSION=3.21.1
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && \
+    apt-get install -yqq --no-install-recommends \
+    git \
+    wget \
+    scons \
+    ca-certificates \
+    curl \
+    autoconf \
+    libtool \
+    python3-dev \
+    python3-pip \
+    python3-numpy \
+    build-essential \
+    libssl-dev \
+    zlib1g-dev \
+    default-jdk \
+    libtool \
+    zip \
+    unzip \
+    xxd \
+    rapidjson-dev \
+    software-properties-common \
+    unzip && \
+    wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | \
+    gpg --dearmor - |  \
+    tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null && \
+    apt-add-repository 'deb https://apt.kitware.com/ubuntu/ bionic main' && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends cmake-data cmake && \
+    pip3 install -U pip wheel && \
+    rm -rf /var/lib/apt/lists/*
+
+# Triton version pins, assumed same across backend, core, and common
+# Note that this is set to the rX.XX branches, not the vX.X.X tags
+ARG TRITON_REPO_TAG=r22.02
+
+# CMake build arguments for jetson
+# We disable armnn as it doesn't handle threads correctly when
+# Multiple models are running
+ARG CMAKE_BUILD_TYPE=RELEASE
+ARG TRITON_ENABLE_MALI_GPU=OFF
+ARG TFLITE_ENABLE_RUY=ON
+ARG TFLITE_BAZEL_BUILD=OFF
+ARG TFLITE_ENABLE_FLEX_OPS=OFF
+ARG TFLITE_TAG=v2.4.1
+ARG ARMNN_TAG=v22.05
+ARG ARMNN_DELEGATE_ENABLE=OFF
+ARG ACL_TAG=${ARMNN_TAG}
+
+# Build ArmNN TFLite Backend
+WORKDIR /opt
+RUN git clone -b patch/fix-tfroot https://gitlab.com/arm-research/smarter/armnn_tflite_backend && \
+    cd armnn_tflite_backend && \
+    mkdir build && \
+    cd build && \
+    cmake .. \
+    -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} \
+    -DCMAKE_INSTALL_PREFIX:PATH=`pwd`/install \
+    -DTRITON_BACKEND_REPO_TAG=${TRITON_REPO_TAG} \
+    -DTRITON_CORE_REPO_TAG=${TRITON_REPO_TAG} \
+    -DTRITON_COMMON_REPO_TAG=${TRITON_REPO_TAG} \
+    -DTRITON_ENABLE_GPU=OFF \
+    -DTRITON_ENABLE_MALI_GPU=${TRITON_ENABLE_MALI_GPU} \
+    -DTFLITE_ENABLE_RUY=${TFLITE_ENABLE_RUY} \
+    -DTFLITE_BAZEL_BUILD=${TFLITE_BAZEL_BUILD} \
+    -DTFLITE_ENABLE_FLEX_OPS=${TFLITE_ENABLE_FLEX_OPS} \
+    -DTFLITE_TAG=${TFLITE_TAG} \
+    -DARMNN_TAG=${ARMNN_TAG} \
+    -DARMNN_DELEGATE_ENABLE=${ARMNN_DELEGATE_ENABLE} \
+    -DACL_TAG=${ACL_TAG} \
+    -DJOBS=$(nproc) && \
+    make -j$(nproc) install
+
+FROM nvcr.io/nvidia/l4t-ml:r32.7.1-py3
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    software-properties-common \
+    autoconf \
+    automake \
+    build-essential \
+    cmake \
+    git \
+    libb64-dev \
+    libre2-dev \
+    libssl-dev \
+    libtool \
+    libboost-dev \
+    libcurl4-openssl-dev \
+    libopenblas-dev \
+    rapidjson-dev \
+    patchelf \
+    pkg-config \
+    xxd \
+    libcairo2-dev \
+    libjpeg-dev \
+    libgif-dev \
+    zlib1g-dev \
+    cpuset \
+    nginx && \
+    add-apt-repository -y ppa:deadsnakes/ppa && \
+    apt-get install -y --no-install-recommends \
+    python3.10-dev \
+    python3.10-venv && \
+    rm -rf /var/lib/apt/lists/* && \
+    update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.6 1 && \
+    update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.10 2 && \
+    update-alternatives --config python3 && \
+    python3 -m ensurepip --upgrade
+
+# Create a output model repository for the admission controller
+RUN mkdir /opt/output_models
+
+WORKDIR /opt/tritonserver
+
+RUN wget https://github.com/triton-inference-server/server/releases/download/v2.19.0/tritonserver2.19.0-jetpack4.6.1.tgz && \
+    tar -xzf tritonserver2.19.0-jetpack4.6.1.tgz && \
+    rm tritonserver2.19.0-jetpack4.6.1.tgz
+
+COPY --from=tflite_backend_build /opt/armnn_tflite_backend/build/install/backends/armnn_tflite /opt/tritonserver/backends/armnn_tflite
+
+COPY requirements-admission-controller.txt /opt/requirements-admission-controller.txt
+
+RUN python3 -m pip install --no-cache-dir --upgrade pip && \
+    python3 -m pip install --no-cache-dir -r /opt/requirements-admission-controller.txt && \
+    python3 -m pip install --no-cache-dir wheel && \
+    python3 -m pip install --no-cache-dir --upgrade clients/python/tritonclient-*-py3-none-manylinux2014_aarch64.whl
+
+RUN git clone -b r22.04 https://github.com/triton-inference-server/model_analyzer /tmp/model_analyzer && \
+    cd /tmp/model_analyzer && \
+    chmod +x build_wheel.sh && \
+    ./build_wheel.sh /usr/bin/perf_analyzer true && \
+    python3 -m pip install --no-cache-dir --ignore-installed wheels/triton_model_analyzer-*.whl && \
+    rm -rf /tmp/model_analyzer
+
+WORKDIR /opt
+COPY main.py /opt/main.py
+COPY admission_controller /opt/admission_controller
+
+# Omitting this env variable causes numpy to issue illegal instruction
+# https://github.com/numpy/numpy/issues/18131
+ENV OPENBLAS_CORETYPE=ARMV8
+
+ENTRYPOINT [ "python3", "main.py" ]
