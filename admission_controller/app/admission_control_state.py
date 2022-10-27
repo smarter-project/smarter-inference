@@ -66,7 +66,6 @@ class AdmissionControlState:
             other_cpus = list(set(total_cpus) - set(AVAILABLE_TRITON_CPUS))
         if not (SHIELD):
             nginx_server_psutil.cpu_affinity(other_cpus)
-        nginx_server_psutil.nice(-1)
 
         # Also set affinity and nice for all nginx worker processes
         children = nginx_server_psutil.children(recursive=True)
@@ -74,7 +73,6 @@ class AdmissionControlState:
             print("Child pid is {}".format(child.pid))
             if not (SHIELD):
                 psutil.Process(child.pid).cpu_affinity(other_cpus)
-            nginx_server_psutil.nice(-1)
 
         # Also set cpu affinity of api server
         if not (SHIELD):

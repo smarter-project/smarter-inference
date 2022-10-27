@@ -22,6 +22,7 @@ class ConfigGeneration(str, Enum):
     infer_gcn = "infer_gcn"
     infer_vw = "infer_vw"
     random = "random"
+    passthrough = "passthrough"
 
 
 class Metrics(BaseModel):

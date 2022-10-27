@@ -9,7 +9,7 @@ import psutil
 import tritonclient.http as httpclient
 from matplotlib.style import available
 from model_analyzer.triton.server.server_local import TritonServerLocal
-from tritonhttpclient import InferenceServerClient
+from tritonclient.http import InferenceServerClient
 
 from .admission_controller_exceptions import *
 from .constants import *

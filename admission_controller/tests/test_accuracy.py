@@ -12,9 +12,6 @@ from statistics import mean, median
 from time import sleep
 from typing import List
 
-import pandas as pd
-from admission_controller.app.constants import cpu_list_from_cpu_str
-
 from tests.helpers.ac_perf_analyzer.ac_helper import AC_Helper
 from tests.helpers.helpers import *
 from tests.helpers.plotting import plot_results_default

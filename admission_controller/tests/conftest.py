@@ -408,7 +408,7 @@ def pytest_addoption(parser):
     parser.addoption(
         "--triton-base-image",
         action="store",
-        default="nvcr.io/nvidia/tritonserver:22.03-py3",
+        default="tritonserver:latest",
         required=False,
         help="Image name for triton used in admission controller",
     )

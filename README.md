@@ -3,6 +3,13 @@
 ## Installation
 To install the admission controller, you can either build against the host machine or use docker
 
+To initialize the repo with our test images you can run from the root of this repo:
+```bash
+cd admission_controller/tests
+wget https://images.getsmarter.io/ml-models/admission_controller_triton_model_repo.tar.gz
+tar -xvzf admission_controller_triton_model_repo.tar.gz
+```
+
 ### Docker Configuration
 The admission controller realtime features only work on systems which use cgroup v1. You can check on your system by running:
 ```bash
@@ -28,10 +35,11 @@ To build your docker image you must first build triton from scratch, then build 
 To build the tritonserver from scratch:
 ```bash
 cd ~
-git clone -b r22.03 https://github.com/triton-inference-server/server.git
+git clone -b r22.05 https://github.com/triton-inference-server/server.git
 cd server
-./build.py --cmake-dir=$(pwd)/build --build-dir=/tmp/citritonbuild --enable-logging --enable-stats --enable-tracing --enable-metrics --endpoint=http --endpoint=grpc --backend=tensorflow1 --backend=armnn_tflite:main --extra-backend-cmake-arg=tensorflow1:TRITON_TENSORFLOW_INSTALL_EXTRA_DEPS=ON
+./build.py --enable-logging --enable-stats --enable-tracing --enable-metrics --endpoint=http --endpoint=grpc --backend=tensorflow1 --backend=armnn_tflite:dev --extra-backend-cmake-arg=tensorflow1:TRITON_TENSORFLOW_INSTALL_EXTRA_DEPS=ON
 ```
+This command will generate a `tritonserver:latest` image, which will be used as the base image in the next step
 
 Now build the admission controller:
 ```bash
@@ -40,11 +48,11 @@ docker build -t admission_controller .
 ```
 
 ### Host build
-To build against the host, you need to install triton yourself, which is easiest to do via a host build. On an Ubuntu 20.04 machine, you can run (replace 22.02 with the NGC container release version of choice):
+To build against the host, you need to install triton yourself, which is easiest to do via a host build. On an Ubuntu 20.04 machine, you can run (replace 22.05 with the NGC container release version of choice):
 ```bash
-git clone -b r22.03 https://github.com/triton-inference-server/server
+git clone -b r22.05 https://github.com/triton-inference-server/server
 cd server
-./build.py --cmake-dir=$HOME/code/server/build --build-dir=$HOME/citritonbuild --no-container-build --enable-logging --enable-stats --enable-tracing --enable-metrics --endpoint=http --endpoint=grpc --backend=tensorflow1 --backend=armnn_tflite:main --extra-backend-cmake-arg=tensorflow1:TRITON_TENSORFLOW_INSTALL_EXTRA_DEPS=ON --upstream-container-version=22.03
+./build.py --cmake-dir=$HOME/code/server/build --build-dir=$HOME/citritonbuild --no-container-build --enable-logging --enable-stats --enable-tracing --enable-metrics --endpoint=http --endpoint=grpc --backend=tensorflow1 --backend=armnn_tflite:main --extra-backend-cmake-arg=tensorflow1:TRITON_TENSORFLOW_INSTALL_EXTRA_DEPS=ON --upstream-container-version=22.05
 ```
 
 ## Usage
@@ -61,38 +69,51 @@ docker build --build-arg TARGETARCH=amd64 -t model-analyzer .
 
 If you wish to build a version of the Model Analyzer with a custom triton you can run the following after building triton using the `build.py` convenience script found [here](https://github.com/triton-inference-server/server/blob/main/build.py): 
 ```bash
-docker build --build-arg TRITON_BASE_IMAGE=tritonserver:latest -t model-analyzer-custom -f Dockerfile.custom_triton .
+docker build --build-arg TRITON_BASE_IMAGE=tritonserver:latest -t model-analyzer -f Dockerfile.custom_triton .
 ```
 
 For Jetson builds you can build the Docker image for triton and the admission controller and use this for the custom model analyzer build:
 ```bash
-docker build --build-arg TRITON_BASE_IMAGE=admission_controller -t model-analyzer-custom -f Dockerfile.custom_triton .
+docker build --build-arg TRITON_BASE_IMAGE=admission_controller -t model-analyzer -f Dockerfile.custom_triton .
 ```
 
-For tensorflow models in this repo:
+**Before you run the profiler you will want to lock your clock freqencies by setting your cpu scaling governor to performance (max freq) or powersave (min freq).**
+
+To profile the models in this repo:
 ```bash
 docker run -it --rm \
      -v $HOME/code/admission_controller/admission_controller/tests:/model-test \
      --net=host -v $HOME/saved_checkpoints:/opt/triton-model-analyzer/checkpoints model-analyzer
 
-model-analyzer profile --model-repository /model-test/triton_model_repo/ --config /model-test/triton_model_repo/profile_config_tf_<machine_name>.yml --collect-cpu-metrics --override-output-model-repository
-```
-
-For tensorflow lite models in this repo:
-```bash
-docker run -it --rm \
-     -v $HOME/code/admission_controller/admission_controller/tests:/model-test \
-     --net=host -v $HOME/saved_checkpoints:/opt/triton-model-analyzer/checkpoints model-analyzer-custom
-
-model-analyzer profile --model-repository /model-test/triton_model_repo/ --config /model-test/triton_model_repo/profile_config_tflite_<machine_name>.yml --collect-cpu-metrics --override-output-model-repository
+model-analyzer profile --model-repository /model-test/triton_model_repo/ --config /model-test/triton_model_repo/profile_config_<tf/tflite>_<machine_name>.yml --collect-cpu-metrics --override-output-model-repository
 ```
 
 Finally to export the data into this repository, from the root of this repo, run the script:
 ```bash
 ./export_model_data.sh -c <container id of model analyzer> -p <platform name>
 ```
+where platform name is an arbitrary nickname of the machine the data was gathered
 
 The output of these instructions will leave a csv file for use with the admission controller
+
+### Admission Controller Runtime Options
+Admission Controller is configurable using environment variables. The following options are available:
+| Variable | Values | Default | Details |
+| ---      | ---    | ---     | ---     |
+| `SHIELD`   | Any or unset   | unset | If set use cpu shield assuming it has already been setup on the host |
+| `GPUS`     | List of gpu ids  | unset | Gpu ids. On jetson only option is 0  |
+| `SCHED`     | `NICE`, `DEADLINE`, `RR`, or unset | unset | Linux scheduling class to use, if unset inference threads run with default priority  |
+| `MULTI_SERVER` | Any or unset | unset | If set, one triton server process will be used per managed model  |
+| `TRITON_INSTALL_PATH` | Filepath or unset | `/opt/tritonserver` | Path to tritonserver binary |
+| `OUTPUT_REPO_PATH` | Filepath or unset | `/opt/output_models` | Location to write output model repo for triton to use |
+| `CLIENT_MAX_RETRIES` | Integer or unset | 20 | Max retries for a triton client used by admission controller when managing triton |
+| `TRITON_URL` | URL or unset | `localhost:8000` | Url where admission controller can access triton |
+| `PRIORITY_ASSIGNMENT` | `SLACK` or unset  | unset | If `SLACK`, when using `RR` or `NICE` scheduling class: assign highest priority to inference with tightest deadlines, else assign highest priority to lowest request latency |
+| `SCALING_FACTOR` | Float or unset | 1.0 | Scale profiled inference latency data by scaling factor to account for clock freq changes |
+| `NO_ENFORCE` | Any or unset | unset | If set admission control is not enforced by the system |
+| `NGINX_LOGGING` | Any or unset | unset | If set enable nginx logs to be written |
+| `NGINX_CONFIG_PATH` | Filepath or unset | `/tmp/nginx_config.txt` | File to write nginx logs |
+| `NO_NGINX_RATELIMIT` | Any or unset | unset | If set nginx rate-limiting not used |
 
 ### Run via Docker
 To run the docker image simply run:
@@ -103,6 +124,7 @@ docker run --rm -it -p 2520-2522:2520-2522 admission_controller
 ### Run on host
 To run on the host you must pass some environment variables to point to your triton installation and desired output model repository. As an example you may run:
 ```bash
+python3 -m pip install -r requirements-admission-controller.txt
 TRITON_INSTALL_PATH=$HOME/tritonserver_install OUTPUT_MODEL_REPO_PATH=/tmp/output_model_repository python3 main.py
 ```
 
@@ -110,13 +132,12 @@ By default the admission control api is available on `0.0.0.0:2520`
 The Nginx server acts as the gateway to access the triton server, and listens on `0.0.0.0:2521` for http requests to Triton, and `0.0.0.0:2522` for gRPC requests.
 
 ### Run test suite
-To run the test suite to measure repeatable performance for a fixed set of tests, first download and untar our test images then, install the test dependencies and run:
+To run the test suite to measure repeatable performance for a fixed set of tests we use pytest. These tests rely on docker to build an run the admission controller image. 
+
+From the root of this repository run the following commands:
 ```bash
-cd admission_controller/admission_controller/tests
-wget https://images.getsmarter.io/ml-models/admission_controller_triton_model_repo.tar.gz
-tar -xvzf admission_controller_triton_model_repo.tar.gz
-python3 -m pip install -r ../../test_deps.txt
-pytest --plots -vv --capture-duration 60
+python3 -m pip install -r test_deps.txt
+pytest --plot -vv --min-capture-duration 30 --max-capture-duration 200
 ```
 
 ### Use CPU Shielding

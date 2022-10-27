@@ -1,4 +1,5 @@
-ARG TRITON_BASE_IMAGE=nvcr.io/nvidia/tritonserver:22.03-py3
+
+ARG TRITON_BASE_IMAGE=tritonserver:latest
 
 FROM ${TRITON_BASE_IMAGE} as tritonserver_build_final
 
@@ -33,7 +34,7 @@ RUN python3 -m pip install --no-cache-dir --upgrade pip && \
 
 # To support both arm and x86 versions, we must build model_analyzer from source
 # The pip wheel for the arm sbsa model analyzer does not work
-RUN git clone -b r22.04 https://github.com/triton-inference-server/model_analyzer /tmp/model_analyzer && \
+RUN git clone -b r22.05 https://github.com/triton-inference-server/model_analyzer /tmp/model_analyzer && \
     cd /tmp/model_analyzer && \
     chmod +x build_wheel.sh && \
     ./build_wheel.sh /usr/local/bin/perf_analyzer true && \
@@ -42,8 +43,6 @@ RUN git clone -b r22.04 https://github.com/triton-inference-server/model_analyze
 
 COPY main.py /opt/main.py
 COPY admission_controller /opt/admission_controller
-
-RUN pip3 install fastapi-health
 
 WORKDIR /opt
 ENTRYPOINT [ "python3", "main.py" ]

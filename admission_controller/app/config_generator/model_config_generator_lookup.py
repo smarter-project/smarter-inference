@@ -2,8 +2,7 @@ import logging
 from typing import Dict, Tuple
 
 from admission_controller.app.constants import (
-    MISS_TOLERANCE,
-    NO_ENFORCE_ADMISSION_CONTROL,
+    NO_ENFORCE,
     NUM_TRITON_CPUS,
     SCALING_FACTOR,
 )
@@ -144,14 +143,13 @@ class ModelConfigGeneratorLookup(ModelConfigGenerator):
         ):
             raise AdmissionControllerException("No row fit constraints")
 
-        if not (NO_ENFORCE_ADMISSION_CONTROL):
+        if not (NO_ENFORCE):
             df_no_misses = df.loc[(df["deadline_misses"] == 0)]
             if df_no_misses.empty:
                 reason = (
                     "New load request failed to schedule within miss"
                     f" tolerance. Model: {self._model_name}, Misses:"
-                    f" {df['deadline_misses'].to_string()} > tolerance:"
-                    f" {self._miss_tolerance}"
+                    f" {df['deadline_misses'].to_string()} > tolerance: 0"
                 )
                 raise AdmissionControllerException(reason)
 
@@ -342,14 +340,13 @@ class ModelConfigGeneratorLookup(ModelConfigGenerator):
                     f" {proj_mem},"
                     f" had {self._system_metrics_actual.cpu_free_memory}"
                 )
-            if not (NO_ENFORCE_ADMISSION_CONTROL):
+            if not (NO_ENFORCE):
                 df_no_misses = df.loc[(df["deadline_misses"] == 0)]
                 if df_no_misses.empty:
                     reason = (
                         "New load request failed to schedule within miss"
                         f" tolerance. Model: {self._model_name}, Misses:"
-                        f" {df['deadline_misses'].to_string()} > tolerance:"
-                        f" {MISS_TOLERANCE}"
+                        f" {df['deadline_misses'].to_string()} > tolerance: 0"
                     )
                     raise AdmissionControllerException(reason)
             return df.iloc[0]

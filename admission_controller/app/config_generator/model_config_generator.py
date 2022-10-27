@@ -46,15 +46,18 @@ class ModelConfigGenerator(ABC):
         self._hyperperiod = hyperperiod
         self._linear_mem_models: Dict[str, LinearRegression] = {}
 
-        # Generate the perf df for the model from the profiled data
-        (_, _, self._perf_df,) = self.model_analyzer_csv_to_df(
-            self._model_type,
-            self._model_perf_file_path,
-            perf_constraints=self._current_model_states[
-                self._model_name
-            ].perf_constraints,
-        )
-        self._gen_mem_linreg_models()
+        if os.path.exists(self._model_perf_file_path):
+            # Generate the perf df for the model from the profiled data
+            (_, _, self._perf_df,) = self.model_analyzer_csv_to_df(
+                self._model_type,
+                self._model_perf_file_path,
+                perf_constraints=self._current_model_states[
+                    self._model_name
+                ].perf_constraints,
+            )
+            self._gen_mem_linreg_models()
+        else:
+            self._perf_df = None
 
     @abstractmethod
     def process_triton_model_configuration(
@@ -365,7 +368,7 @@ class ModelConfigGenerator(ABC):
         model_config_params[
             "instance_group"
         ] = ModelConfigGenerator.instance_group_string_to_config(
-            f"{int(row['CPU'])}/{'CPU'},{int(row['GPU'])}/{'GPU'}"
+            f"{int(row['CPU'])}/CPU,{int(row['GPU'])}/GPU"
         )
 
         if model_type == ModelType.tf:

@@ -50,8 +50,7 @@ PRIORITY_ASSIGNMENT = os.getenv("PRIORITY_ASSIGNMENT")
 
 # API Server Constants
 SCALING_FACTOR = float(os.getenv("SCALING_FACTOR", "1.0"))
-MISS_TOLERANCE = float(os.getenv("MISS_TOLERANCE", "0.0"))
-NO_ENFORCE_ADMISSION_CONTROL = bool(os.getenv("NO_ENFORCE"))
+NO_ENFORCE = bool(os.getenv("NO_ENFORCE"))
 MAX_CPU_PERCENT = NUM_TRITON_CPUS * 100
 
 # Nginx Constants

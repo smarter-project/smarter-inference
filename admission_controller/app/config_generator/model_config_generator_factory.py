@@ -5,6 +5,7 @@ from ..model import *
 from ..model_state import ModelState
 from .model_config_generator import ModelConfigGenerator
 from .model_config_generator_lookup import ModelConfigGeneratorLookup
+from .model_config_generator_passthrough import ModelConfigGeneratorPassthrough
 
 
 class ModelConfigGeneratorFactory:
@@ -28,6 +29,13 @@ class ModelConfigGeneratorFactory:
             )
         elif load_request.method == ConfigGeneration.lookup_lr:
             return ModelConfigGeneratorFactory.create_model_config_generator_lookup_lr(
+                load_request,
+                system_metrics_actual,
+                current_model_states,
+                hyperperiod,
+            )
+        elif load_request.method == ConfigGeneration.passthrough:
+            return ModelConfigGeneratorFactory.create_model_config_generator_passthrough(
                 load_request,
                 system_metrics_actual,
                 current_model_states,
@@ -60,3 +68,17 @@ class ModelConfigGeneratorFactory:
         hyperperiod: float,
     ):
         raise NotImplementedError
+
+    @staticmethod
+    def create_model_config_generator_passthrough(
+        load_request: ModelLoadRequest,
+        system_metrics_actual: Metrics,
+        current_model_states: Dict[str, ModelState],
+        hyperperiod: float,
+    ):
+        return ModelConfigGeneratorPassthrough(
+            load_request,
+            system_metrics_actual,
+            current_model_states,
+            hyperperiod,
+        )
