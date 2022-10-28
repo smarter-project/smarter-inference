@@ -1,0 +1,11 @@
+#
+
+application:
+  namespace: smarter
+  appName: smarter-admission-controller
+
+image:
+  repository: admission_controller
+  # @default -- chart.appVersion
+  tag: ""
+  pullPolicy: IfNotPresent
