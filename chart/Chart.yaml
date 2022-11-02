@@ -3,7 +3,7 @@ name: smarter-admission-controller
 description: smarter-admission-controller chart for SMARTER edge devices
 home: https://gitlab.com/smarter-project/documentation/charts/admission-controller
 version: 0.0.1
-appVersion: latest
+appVersion: 0.0.1
 kubeVersion: ">=1.16.0-0"
 keywords:
   - kubernetes

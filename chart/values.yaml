@@ -5,7 +5,7 @@ application:
   appName: smarter-admission-controller
 
 image:
-  repository: admission_controller
+  repository: registry.gitlab.com/smarter-project/admission-controller/patch-cleaning
   # @default -- chart.appVersion
   tag: ""
   pullPolicy: IfNotPresent
