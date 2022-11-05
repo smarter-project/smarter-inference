@@ -1,3 +1,6 @@
+# Copyright © 2022 Arm Ltd and Contributors. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+
 from .server_local import NginxServerLocal
 
 

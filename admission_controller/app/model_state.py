@@ -1,3 +1,6 @@
+# Copyright © 2022 Arm Ltd and Contributors. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+
 from typing import Dict
 
 from numpy import product

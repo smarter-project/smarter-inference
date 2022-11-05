@@ -1,10 +1,13 @@
+# Copyright © 2022 Arm Ltd and Contributors. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+
 import json
 import select
 import sys
 import threading
 from math import ceil
 from re import L
-from time import process_time, sleep, time
+from time import sleep, time
 from timeit import default_timer as timer
 from typing import Optional
 

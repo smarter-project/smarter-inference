@@ -1,7 +1,10 @@
+# Copyright © 2022 Arm Ltd and Contributors. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+
 import argparse
 import sys
 from math import sqrt
-from typing import List, Optional
+from typing import Optional
 
 import matplotlib.pyplot as plt
 import numpy as np

@@ -1,3 +1,6 @@
+# Copyright © 2022 Arm Ltd and Contributors. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+
 import logging
 import os
 import re
@@ -699,11 +702,14 @@ class TritonManager:
         # ModelConfigGenerator within the TritonManager handles this.
         # We first update model state with the proposal for the new load request, then invoke
         # the model loader to generate a triton configuration and get updated projected metrics
-        max_batch_size = int(
-            ModelConfig.create_from_file(model_dir).get_config()[
-                "max_batch_size"
-            ]
-        )
+        try:
+            max_batch_size = int(
+                ModelConfig.create_from_file(model_dir).get_config()[
+                    "max_batch_size"
+                ]
+            )
+        except KeyError:
+            max_batch_size = 1
 
         (model_config_dict, reason, deadline_misses,) = self._add_load_request(
             load_request_uuid,

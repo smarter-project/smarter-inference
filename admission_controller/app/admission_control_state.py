@@ -1,19 +1,20 @@
-import logging
+# Copyright © 2022 Arm Ltd and Contributors. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+
 import multiprocessing
 import os
+import pathlib
 import shutil
 import time
 from typing import Dict
 
 import psutil
 import requests  # type: ignore
-from admission_controller.app.admission_controller_exceptions import (
-    UnsatisfiableRequestException,
-)
+from admission_controller.app.admission_controller_exceptions import \
+    UnsatisfiableRequestException
 from fastapi import File, HTTPException, UploadFile, status
-from model_analyzer.model_analyzer_exceptions import (
-    TritonModelAnalyzerException,
-)
+from model_analyzer.model_analyzer_exceptions import \
+    TritonModelAnalyzerException
 from tritonclient.utils import InferenceServerException
 
 from ..nginx.server import NginxServer
@@ -157,7 +158,10 @@ class AdmissionControlState:
         if len(files) < 2:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Please upload at least 2 files",
+                detail=(
+                    "Please upload at least 2 files. Model file and model"
+                    " config"
+                ),
             )
 
         model_file = files[0]
@@ -189,12 +193,28 @@ class AdmissionControlState:
         with open(model_config_file_path, "wb") as buffer:
             shutil.copyfileobj(model_config.file, buffer)
 
-        if len(files) == 3:
-            perf_csv = files[2]
-            # Write the user supplied profiling data to the directory
-            perf_csv_file_path = os.path.join(new_model_dir, "perf.csv")
-            with open(perf_csv_file_path, "wb") as buffer:
-                shutil.copyfileobj(perf_csv.file, buffer)
+        if len(files) <= 4:
+            remaining_files = files[2:]
+            for file in remaining_files:
+                extension = pathlib.Path(file.filename).suffix
+                if extension == ".csv":
+                    # Write the user supplied profiling data to the directory
+                    perf_csv_file_path = os.path.join(
+                        new_model_dir, "perf.csv"
+                    )
+                    with open(perf_csv_file_path, "wb") as buffer:
+                        shutil.copyfileobj(file.file, buffer)
+                elif extension == ".classes":
+                    classes_filepath = os.path.join(
+                        new_model_dir, file.filename
+                    )
+                    with open(classes_filepath, "wb") as buffer:
+                        shutil.copyfileobj(file.file, buffer)
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Too many files uploaded in request. Max 4",
+            )
 
         return {"Upload": model_name}
 

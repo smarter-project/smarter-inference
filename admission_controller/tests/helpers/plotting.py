@@ -1,3 +1,6 @@
+# Copyright © 2022 Arm Ltd and Contributors. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+
 import logging
 from typing import Dict, Generator, List
 
@@ -112,7 +115,7 @@ def plot_hit_deadline_rates(ax: Axes, hit_deadline_percentages):
         ax.label_outer()
         ax.set_xlim(left=0)
         ax.set_ylim(bottom=0, top=105)
-        ax.set_yticks(range(0,101,25))
+        ax.set_yticks(range(0, 101, 25))
 
 
 def plot_system_util(ax: Axes, system_utilization):
@@ -307,7 +310,9 @@ def plot_inference_time_intervals(
     if not color_list:
         color_list = colors
     labels = [
-        f"{ac_helper.model_name}-{ac_helper.client_id}" if client_ids else ac_helper.model_name
+        f"{ac_helper.model_name}-{ac_helper.client_id}"
+        if client_ids
+        else ac_helper.model_name
         for ac_helper in ac_helpers
     ]
 

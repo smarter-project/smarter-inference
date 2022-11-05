@@ -1,7 +1,11 @@
+# Copyright © 2022 Arm Ltd and Contributors. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+
 import argparse
 import json
 import pathlib
 import pickle
+import sys
 from statistics import mean
 from typing import Dict
 
@@ -11,16 +15,11 @@ import pandas as pd
 import seaborn as sns
 from cycler import cycler
 from matplotlib.axes import Axes
-import sys
 
-from admission_controller.tests.helpers.ac_perf_analyzer.ac_helper import (
-    AC_Helper,
-)
 from admission_controller.tests.helpers.plotting import (
     plot_hit_deadline_rates,
     plot_inference_time_intervals,
     plot_results_default,
-    plot_system_util,
 )
 
 
@@ -86,7 +85,7 @@ def plot_triton_util(ax: Axes, system_utilization):
     ax.label_outer()
     ax.set_xlim(left=0)
     ax.set_ylim(bottom=0)
-    ax.set_yticks(range(0,101,25))
+    ax.set_yticks(range(0, 101, 25))
 
 
 def false_positive(result):
@@ -258,7 +257,10 @@ if __name__ == "__main__":
         perf_stats_df = test_data["perf_stats_df"]
 
         if args.sanitize_names:
-            hit_deadline_percentages = {sanitize_name(k): v for k,v in hit_deadline_percentages.items()}
+            hit_deadline_percentages = {
+                sanitize_name(k): v
+                for k, v in hit_deadline_percentages.items()
+            }
 
         if args.default:
             if not (args.out_file):
@@ -291,7 +293,9 @@ if __name__ == "__main__":
         fig.supxlabel("Time (s)")
         plot_triton_util(ax[0], system_utilization)
         plot_hit_deadline_rates(ax[1], hit_deadline_percentages)
-        plot_inference_time_intervals(ax[2], ac_helpers, color_list=colors, client_ids=False)
+        plot_inference_time_intervals(
+            ax[2], ac_helpers, color_list=colors, client_ids=False
+        )
         for a in ax:
             if args.mark_reject:
                 a.axvline(x=args.mark_reject, ymin=0, color="xkcd:purple")

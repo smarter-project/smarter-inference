@@ -1,3 +1,6 @@
+# Copyright © 2022 Arm Ltd and Contributors. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+
 import logging
 from collections import defaultdict
 from fractions import Fraction

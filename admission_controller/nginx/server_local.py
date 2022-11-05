@@ -1,13 +1,15 @@
+# Copyright © 2022 Arm Ltd and Contributors. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+
+import logging
 import signal
 from subprocess import DEVNULL, STDOUT, Popen, TimeoutExpired
 from typing import Dict, List, Optional
 
 import psutil
-import logging
 from model_analyzer.constants import LOGGER_NAME, SERVER_OUTPUT_TIMEOUT_SECS
-from model_analyzer.model_analyzer_exceptions import (
-    TritonModelAnalyzerException,
-)
+from model_analyzer.model_analyzer_exceptions import \
+    TritonModelAnalyzerException
 
 from ..app.model_state import ModelState
 from .server import NginxServer
