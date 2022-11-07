@@ -30,9 +30,19 @@ sudo systemctl restart docker
 sudo rmdir /sys/fs/cgroup/cpuset/docker 
 ```
 ### Docker build
-To build your docker image you must first build triton from scratch, then build the admission controller.
+To build your docker image you can simply run the following:
+```bash
+cd <admission_controller_directory>
+docker build -t admission_controller .
+```
+and if building for jetson devices you can run:
+```bash
+cd <admission_controller_directory>
+docker build -f Dockerfile.jetson -t admission_controller .
+```
 
-To build the tritonserver from scratch:
+
+If you wish to build against a custom version of triton you can build triton from scratch:
 ```bash
 cd ~
 git clone -b r22.05 https://github.com/triton-inference-server/server.git
@@ -41,10 +51,10 @@ cd server
 ```
 This command will generate a `tritonserver:latest` image, which will be used as the base image in the next step
 
-Now build the admission controller:
+Now build the admission controller, specifying your custom triton image:
 ```bash
 cd <admission_controller_directory>
-docker build -t admission_controller .
+docker build --build-arg TRITON_BASE_IMAGE=tritonserver:latest -t admission_controller .
 ```
 
 ### Host build
@@ -52,7 +62,7 @@ To build against the host, you need to install triton yourself, which is easiest
 ```bash
 git clone -b r22.05 https://github.com/triton-inference-server/server
 cd server
-./build.py --cmake-dir=$HOME/code/server/build --build-dir=$HOME/citritonbuild --no-container-build --enable-logging --enable-stats --enable-tracing --enable-metrics --endpoint=http --endpoint=grpc --backend=tensorflow1 --backend=armnn_tflite:main --extra-backend-cmake-arg=tensorflow1:TRITON_TENSORFLOW_INSTALL_EXTRA_DEPS=ON --upstream-container-version=22.05
+./build.py --cmake-dir=$HOME/code/server/build --build-dir=$HOME/citritonbuild --no-container-build --enable-logging --enable-stats --enable-tracing --enable-metrics --endpoint=http --endpoint=grpc --backend=tensorflow1 --backend=armnn_tflite:dev --extra-backend-cmake-arg=tensorflow1:TRITON_TENSORFLOW_INSTALL_EXTRA_DEPS=ON --upstream-container-version=22.05
 ```
 
 ## Usage
