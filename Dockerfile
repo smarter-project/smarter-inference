@@ -1,5 +1,5 @@
 
-ARG TRITON_BASE_IMAGE=tritonserver:latest
+ARG TRITON_BASE_IMAGE=ghcr.io/smarter-project/smarter-inference:triton_22_05
 
 FROM ${TRITON_BASE_IMAGE} as tritonserver_build_final
 
