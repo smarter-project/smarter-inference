@@ -1,0 +1,11 @@
+#
+
+application:
+  namespace: smarter
+  appName: smarter-inference
+
+image:
+  repository: ghcr.io/smarter-project/smarter-inference
+  # @default -- chart.appVersion
+  tag: ""
+  pullPolicy: IfNotPresent
