@@ -1,0 +1,35 @@
+apiVersion: v1
+entries:
+  smarter-inference:
+  - annotations:
+      artifacthub.io/changes: |
+        - Fix template
+        - Add annotations
+      artifacthub.io/license: Apache-2.0
+      artifacthub.io/maintainers: |
+        - name: Alexandre Ferreira
+          email: alexandref75@gmail.com
+      artifacthub.io/prerelease: "false"
+      artifacthub.io/signKey: |
+        fingerprint: 71EDA4E3D652DC73EB09E3A5387D298C169CF24E
+        url: https://smarter-project.github.io/documentation/pgp_keys.asc
+    apiVersion: v2
+    appVersion: 0.0.1
+    created: "2022-11-07T21:01:32.516529841Z"
+    description: smarter-inference chart for SMARTER edge devices
+    digest: 8637b8ae48fc6799d9741d14959530469455e5df623e980f7882ca31b4b3a2d2
+    home: https://getsmarter.io
+    icon: https://gitlab.com/uploads/-/system/group/avatar/59012546/ARM1636_Project_Logo_ST2_RGB_V1.png
+    keywords:
+    - kubernetes
+    - device
+    - triton
+    - admission-controller
+    kubeVersion: '>=1.16.0-0'
+    name: smarter-inference
+    sources:
+    - https://github.com/smarter-project/smarter-inference
+    urls:
+    - https://github.com/smarter-project/smarter-inference/releases/download/smarter-inference-0.0.2/smarter-inference-0.0.2.tgz
+    version: 0.0.2
+generated: "2022-11-07T21:01:32.516534841Z"
