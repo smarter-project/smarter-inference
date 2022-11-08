@@ -45,7 +45,7 @@ Pillow==9.1.1
 platformdirs==2.5.2
 pluggy==1.0.0
 prometheus-client==0.14.1
-protobuf==3.19.4
+protobuf==3.19.5
 psutil==5.9.1
 py==1.11.0
 pycodestyle==2.8.0
