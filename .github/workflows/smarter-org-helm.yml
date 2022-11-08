@@ -1,0 +1,11 @@
+# release.yaml
+name: Release Charts
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  release:
+    uses: smarter-project/reusable-workflows/.github/workflows/smarter-org-helm.yml@9927568ab57568aff1bf848e625686522261fb06
