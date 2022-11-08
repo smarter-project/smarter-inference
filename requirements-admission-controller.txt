@@ -8,7 +8,7 @@ loguru==0.6.0
 numpy==1.21.5
 pandas==1.4.1
 protobuf==3.19.4
-psutil==5.9.0
+psutil==5.9.4
 pydantic==1.9.0
 python-multipart==0.0.5
 recordclass==0.17.2
