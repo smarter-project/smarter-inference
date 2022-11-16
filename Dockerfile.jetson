@@ -58,7 +58,7 @@ ARG ACL_TAG=${ARMNN_TAG}
 
 # Build ArmNN TFLite Backend
 WORKDIR /opt
-RUN git clone -b patch/fix-tfroot https://gitlab.com/arm-research/smarter/armnn_tflite_backend && \
+RUN git clone -b dev https://github.com/smarter-project/armnn_tflite_backend && \
     cd armnn_tflite_backend && \
     mkdir build && \
     cd build && \

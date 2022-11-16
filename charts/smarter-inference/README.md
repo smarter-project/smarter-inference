@@ -1,16 +1,16 @@
-# smarter-admission-controller
+# smarter-inference
 
-This chart installs Admission Controller for Triton Inference Server in smarter edge
+This chart installs Smarter Inference for Triton Inference Server in smarter edge
 
 ## About
 
-Triton is an inference server for ML models that supports multiple models frameworks, tensorflow, pytorch and others. Smarter admission controller adds a resource management framework in front of Triton enabling its use on edge nodes.
+Triton is an inference server for ML models that supports multiple models frameworks, tensorflow, pytorch and others. Smarter Inference adds a resource management framework in front of Triton enabling its use on edge nodes.
 
 ## Usage
 
-Please check the main [README](https://gitlab.com/smarter-project/admission-controller) for usage models.
+Please check the main [README](https://github.com/smarter-project/smarter-inference) for usage models.
 
 ```console
-helm install smarter-admission-controller chart
+helm install smarter-inference chart
 ```
 
