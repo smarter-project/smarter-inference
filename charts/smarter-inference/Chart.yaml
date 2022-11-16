@@ -12,7 +12,7 @@ keywords:
   - admission-controller
 sources:
   - https://github.com/smarter-project/smarter-inference
-icon: https://gitlab.com/uploads/-/system/group/avatar/59012546/ARM1636_Project_Logo_ST2_RGB_V1.png
+icon: https://github.com/smarter-project/documentation/raw/main/ARM1636_Project_Logo_ST2_RGB_V1.png
 annotations:
   artifacthub.io/changes: |
     - Fix template
