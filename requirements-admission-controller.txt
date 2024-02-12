@@ -10,7 +10,7 @@ pandas==1.4.1
 protobuf==3.19.4
 psutil==5.9.4
 pydantic==1.9.0
-python-multipart==0.0.5
+python-multipart==0.0.7
 recordclass==0.17.2
 scikit_learn==1.1.2
 tritonclient==2.19.0
